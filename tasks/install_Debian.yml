@@ -42,7 +42,7 @@
   package:
     name:
       - redis-server
-      - nginx    
+      - nginx
       - "postgresql-{{ FUNKWHALE_DB_VER }}"
       - "postgresql-client-{{ FUNKWHALE_DB_VER }}"
     state: present

@@ -31,20 +31,20 @@
   register: cloning_funkwhale
 
 - debug:
-    var: cloning_funkwhale    
+    var: cloning_funkwhale
 
 - name: "Add the user"
   user:
     name: funkwhale
     shell: /usr/bin/nologin
     home: /srv/funkwhale
-    
+
 - name: "Install wheel to virtualenv"
   pip:
     name: wheel
     virtualenv: /srv/funkwhale/virtualenv
     virtualenv_command: /usr/bin/python3 -m venv
-  when: cloning_funkwhale.changed    
+  when: cloning_funkwhale.changed
 
 - name: "Upgrade pip to the last version"
   pip:
@@ -53,7 +53,7 @@
     virtualenv_command: /usr/bin/python3 -m venv
     extra_args: --upgrade pip
   register: venv_upgrade
-  when: cloning_funkwhale.changed    
+  when: cloning_funkwhale.changed
 
 # - name: "Install requirements"
 #   pip:
@@ -69,7 +69,7 @@
     virtualenv: /srv/funkwhale/virtualenv
     virtualenv_command: /usr/bin/python3 -m venv
     extra_args: --upgrade pip
-  when: cloning_funkwhale.changed and venv_upgrade.changed #and venv_req.changed
+  when: cloning_funkwhale.changed and venv_upgrade.changed  # and venv_req.changed
 
 
 # TODO postgres and redis must be on the same host

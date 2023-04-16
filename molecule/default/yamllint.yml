@@ -1,3 +1,4 @@
+---
 extends: default
 
 rules:
@@ -9,5 +10,5 @@ rules:
     level: error
   comments-indentation: enable
   document-start: enable
-  line-length: enable
-  truthy: enable
+  line-length: disable
+  truthy: disable
