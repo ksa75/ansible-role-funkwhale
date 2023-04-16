@@ -1,17 +1,23 @@
+---
 galaxy_info:
   role_name: ansible-role-funkwhale
+  role_name: funkwhale
   author: kevit
   description: This role install FunkWhale
   company: Acme, Inc.
   license: MIT
   min_ansible_version: 2.7
+  min_ansible_version: 3
 
   platforms:
     - name: EL
+    - name: Amazon
       versions:
         - 7
+        - all
+    - name: Debian
+      versions:
+        - 11
 
   galaxy_tags:
     - system
-
-dependencies: []
