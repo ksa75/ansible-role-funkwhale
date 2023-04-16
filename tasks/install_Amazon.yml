@@ -41,7 +41,7 @@
     update_cache: true
   when: not postgres_data.stat.exists and repo_pgsql_add.changed
 
-- name: "Install dependeies packages for Funkwhale"
+- name: "Install dependencies packages for Funkwhale"
   package:
     name:
       - python3-devel

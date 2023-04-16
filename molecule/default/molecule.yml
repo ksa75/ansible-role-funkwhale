@@ -2,7 +2,8 @@ dependency:
   name: galaxy
   options:
     ignore-certs: true
-    ignore-errors: false  
+    ignore-errors: false
+    requirements-file: collections.yml    
 driver:
   name: docker
 lint: |
@@ -12,14 +13,13 @@ platforms:
     image: "geerlingguy/docker-debian11-ansible"
     command: ${MOLECULE_COMMAND:-""}
     volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:rw
     privileged: true
+    cgroupns: host
     pre_build_image: true
   - name: ansible-role-funkwhale-test-amazon2
     image: geerlingguy/docker-amazonlinux2-ansible
     command: ${MOLECULE_COMMAND:-""}
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup:ro
     privileged: true
     pre_build_image: true
     parallelize_platforms: true    
@@ -42,5 +42,5 @@ scenario:
 verifier:
   name: testinfra
   directory: ${MOLECULE_PROJECT_DIRECTORY}/molecule/tests/  
-  lint:
-    name: flake8
+    #  lint:
+    #    name: flake8

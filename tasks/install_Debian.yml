@@ -1,8 +1,8 @@
 ---
-- name: "Install dependeies packages for Funkwhale"
+
+- name: "Install dependencies packages for Funkwhale"
   package:
     name:
-      - python-psycopg2
       - libldap2-dev
       - libsasl2-dev
       - build-essential
@@ -14,6 +14,7 @@
       - python3-venv
       - python3-psycopg2
       - gpg
+      - apt-utils
     state: present
 
 - name: "Install pgdg package signing key (Debian/pgdg)"
@@ -31,13 +32,19 @@
     state: present
     update_cache: true
 
+# - name: "Update and upgrade apt packages"
+#   become: true
+#   apt:
+#     upgrade: yes
+#     update_cache: yes
+
 - name: "Prepare of ENV.INFRA for Funkwhale"
   package:
     name:
+      - redis-server
+      - nginx    
       - "postgresql-{{ FUNKWHALE_DB_VER }}"
       - "postgresql-client-{{ FUNKWHALE_DB_VER }}"
-      - redis-server
-      - nginx
     state: present
 
 - name: "Find out pg_hba.conf"

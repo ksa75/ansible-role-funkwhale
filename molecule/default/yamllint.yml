@@ -7,7 +7,7 @@ rules:
   brackets:
     max-spaces-inside: 1
     level: error
-  comments-indentation: disable
-  document-start: disable
-  line-length: disable
-  truthy: disable
+  comments-indentation: enable
+  document-start: enable
+  line-length: enable
+  truthy: enable
