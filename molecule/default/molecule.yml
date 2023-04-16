@@ -38,5 +38,6 @@ scenario:
   name: default
 verifier:
   name: testinfra
+  directory: ${MOLECULE_PROJECT_DIRECTORY}/molecule/tests/  
   lint:
     name: flake8
