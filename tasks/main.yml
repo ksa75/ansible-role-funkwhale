@@ -27,7 +27,7 @@
   git:
     repo: 'https://dev.funkwhale.audio/funkwhale/funkwhale'
     dest: /srv/funkwhale
-    version: develop
+    version: 1.2.1
   register: cloning_funkwhale
 
 - debug:
@@ -55,13 +55,13 @@
   register: venv_upgrade
   when: cloning_funkwhale.changed
 
-# - name: "Install requirements"
-#   pip:
-#     requirements: /srv/funkwhale/api/requirements.txt
-#     virtualenv: /srv/funkwhale/virtualenv
-#     virtualenv_command: /usr/bin/python3 -m venv
-#   when: venv_upgrade.changed and cloning_funkwhale.changed
-#   register: venv_req
+- name: "Install requirements"
+  pip:
+    requirements: /srv/funkwhale/api/requirements.txt
+    virtualenv: /srv/funkwhale/virtualenv
+    virtualenv_command: /usr/bin/python3 -m venv
+  when: venv_upgrade.changed and cloning_funkwhale.changed
+  register: venv_req
 
 - name: "Install pyopenssl to virtualenv"
   pip:
@@ -117,7 +117,7 @@
     app_path: "/srv/funkwhale/api"
     pythonpath: "/usr/bin/python3"
     virtualenv: "/srv/funkwhale/virtualenv"
-  tags: molecule-notest
+  # tags: molecule-notest
   notify:
     - nginx systemd
 
@@ -165,183 +165,3 @@
     - nginx.service
   register: result_systemd
 
-- name: "Check for proper.front.response"
-  uri:
-    url: http://localhost/
-    return_content: true
-    method: GET
-    status_code: 200
-  register: result_front
-  until: '"Welcome to" in result_front.content'
-  retries: 3
-  delay: 1
-
-- debug:
-    var: result_front
-
-- name: "Check result proper Front response"
-  assert:
-    that:
-      - not result_front.changed
-    fail_msg: "'Fail' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-    success_msg: "'Success' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-- name: "Systemd units are enabled"
-  ansible.builtin.systemd:
-    name: '{{ item }}'
-    daemon_reload: true
-    enabled: true
-    state: started
-  loop:
-    - funkwhale-server.service
-    - redis.service
-    - nginx.service
-  register: result_systemd
-
-- name: "Check for proper.front.response"
-  uri:
-    url: http://localhost/
-    return_content: true
-    method: GET
-    status_code: 200
-  register: result_front
-  until: '"Welcome to" in result_front.content'
-  retries: 3
-  delay: 1
-
-- debug:
-    var: result_front
-
-- name: "Check result proper Front response"
-  assert:
-    that:
-      - not result_front.changed
-    fail_msg: "'Fail' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-    success_msg: "'Success' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-- name: "Systemd units are enabled"
-  ansible.builtin.systemd:
-    name: '{{ item }}'
-    daemon_reload: true
-    enabled: true
-    state: started
-  loop:
-    - funkwhale-server.service
-    - redis.service
-    - nginx.service
-  register: result_systemd
-
-- name: "Check for proper.front.response"
-  uri:
-    url: http://localhost/
-    return_content: true
-    method: GET
-    status_code: 200
-  register: result_front
-  until: '"Welcome to" in result_front.content'
-  retries: 3
-  delay: 1
-
-- debug:
-    var: result_front
-
-- name: "Check result proper Front response"
-  assert:
-    that:
-      - not result_front.changed
-    fail_msg: "'Fail' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-    success_msg: "'Success' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-- name: "Systemd units are enabled"
-  ansible.builtin.systemd:
-    name: '{{ item }}'
-    daemon_reload: true
-    enabled: true
-    state: started
-  loop:
-    - funkwhale-server.service
-    - redis.service
-    - nginx.service
-  register: result_systemd
-
-- name: "Check for proper.front.response"
-  uri:
-    url: http://localhost/
-    return_content: true
-    method: GET
-    status_code: 200
-  register: result_front
-  until: '"Welcome to" in result_front.content'
-  retries: 3
-  delay: 1
-
-- debug:
-    var: result_front
-
-- name: "Check result proper Front response"
-  assert:
-    that:
-      - not result_front.changed
-    fail_msg: "'Fail' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-    success_msg: "'Success' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-- name: "Systemd units are enabled"
-  ansible.builtin.systemd:
-    name: '{{ item }}'
-    daemon_reload: true
-    enabled: true
-    state: started
-  loop:
-    - funkwhale-server.service
-    - redis.service
-    - nginx.service
-  register: result_systemd
-
-- name: "Check for proper.front.response"
-  uri:
-    url: http://localhost/
-    return_content: true
-    method: GET
-    status_code: 200
-  register: result_front
-  until: '"Welcome to" in result_front.content'
-  retries: 3
-  delay: 1
-
-- debug:
-    var: result_front
-
-- name: "Check result proper Front response"
-  assert:
-    that:
-      - not result_front.changed
-    fail_msg: "'Fail' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-    success_msg: "'Success' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-- name: "Systemd units are enabled"
-  ansible.builtin.systemd:
-    name: '{{ item }}'
-    daemon_reload: true
-    enabled: true
-    state: started
-  loop:
-    - funkwhale-server.service
-    - redis.service
-    - nginx.service
-  register: result_systemd
-
-- name: "Check for proper.front.response"
-  uri:
-    url: http://localhost/
-    return_content: true
-    method: GET
-    status_code: 200
-  register: result_front
-  until: '"Welcome to" in result_front.content'
-  retries: 3
-  delay: 1
-
-- debug:
-    var: result_front
-
-- name: "Check result proper Front response"
-  assert:
-    that:
-      - not result_front.changed
-    fail_msg: "'Fail' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-    success_msg: "'Success' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"

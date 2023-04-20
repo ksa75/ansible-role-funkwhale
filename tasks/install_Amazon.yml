@@ -150,4 +150,4 @@
   template:
     src: funkwhale.conf.j2
     dest: "{{ FUNKWHALE_NGINX_SERVER_CONF }}funkwhale.conf"
-  tags: molecule-notest
+  # tags: molecule-notest
