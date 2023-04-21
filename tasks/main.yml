@@ -1,8 +1,26 @@
 ---
-- name: "validate configuration"
+- name: "Validate configuration"
   assert:
     that:
-      - funkwhale_domain is defined
+      - FUNKWHALE_VERSION: 1.2.10
+      - FUNKWHALE_PROTOCOL: http
+      - FUNKWHALE_HOSTNAME: yourdomain.funkwhale
+      - # Generate one using `openssl rand -base64 45`, for example
+      - funkwhale_secret: Svxa4hyN5JzkL8hwK3iN5RECyapEUGaia3cEfrhnf3J1yCOFj5PLhYnUFQHs
+      - funkwhale_db: funkwhale_database
+      - funkwhale_db_user: funkwhale
+      - funkwhale_db_password: password
+      - FUNKWHALE_DB_REPO: http://apt.postgresql.org/pub/repos/apt
+      - FUNKWHALE_DB_VER: 13
+      - FUNKWHALE_CONFIG_PATH: /srv/funkwhale/config
+      - FUNKWHALE_FRONTEND_PATH: /srv/funkwhale/front/dist
+      - FUNKWHALE_MEDIA_ROOT: /srv/funkwhale/data/media
+      - FUNKWHALE_STATIC_ROOT: /srv/funkwhale/data/static
+      - FUNKWHALE_MUSIC_DIRECTORY_SERVE_PATH: /srv/funkwhale/data/music
+      - FUNKWHALE_MUSIC_DIRECTORY_PATH: /srv/funkwhale/data/music
+      - FUNKWHALE_NGINX_MAX_BODY_SIZE: 100M
+      - FUNKWHALE_API_IP: 127.0.0.1
+      - FUNKWHALE_API_PORT: 5000
 
 - name: "install pre packages"
   package:
@@ -23,15 +41,26 @@
   include_tasks: "install_{{ ansible_facts['distribution'] }}.yml"
 
 
-- name: "check out master branch"
+- name: "check out {{ FUNKWHALE_VERSION }}"
   git:
     repo: 'https://dev.funkwhale.audio/funkwhale/funkwhale'
     dest: /srv/funkwhale
-    version: 1.2.1
+    version: 1.2.10
   register: cloning_funkwhale
 
 - debug:
     var: cloning_funkwhale
+
+- name: "Download a front"
+  ansible.builtin.get_url:
+    url: "https://dev.funkwhale.audio/funkwhale/funkwhale/-/jobs/artifacts/{{ FUNKWHALE_VERSION }}/download?job=build_front"
+    dest: "/srv/funkwhale/front.zip"
+
+- name: Unarchive a front
+  ansible.builtin.unarchive:
+    src: /srv/funkwhale/front.zip
+    dest: /srv/funkwhale
+  # tags: molecule-notest    
 
 - name: "Add the user"
   user:
@@ -44,7 +73,7 @@
     name: wheel
     virtualenv: /srv/funkwhale/virtualenv
     virtualenv_command: /usr/bin/python3 -m venv
-  when: cloning_funkwhale.changed
+  # when: cloning_funkwhale.changed
 
 - name: "Upgrade pip to the last version"
   pip:
@@ -53,14 +82,14 @@
     virtualenv_command: /usr/bin/python3 -m venv
     extra_args: --upgrade pip
   register: venv_upgrade
-  when: cloning_funkwhale.changed
+  # when: cloning_funkwhale.changed
 
 - name: "Install requirements"
   pip:
     requirements: /srv/funkwhale/api/requirements.txt
     virtualenv: /srv/funkwhale/virtualenv
     virtualenv_command: /usr/bin/python3 -m venv
-  when: venv_upgrade.changed and cloning_funkwhale.changed
+  # when: venv_upgrade.changed and cloning_funkwhale.changed
   register: venv_req
 
 - name: "Install pyopenssl to virtualenv"
@@ -69,7 +98,7 @@
     virtualenv: /srv/funkwhale/virtualenv
     virtualenv_command: /usr/bin/python3 -m venv
     extra_args: --upgrade pip
-  when: cloning_funkwhale.changed and venv_upgrade.changed  # and venv_req.changed
+  # when: cloning_funkwhale.changed and venv_upgrade.changed  and venv_req.changed
 
 
 # TODO postgres and redis must be on the same host
@@ -96,12 +125,18 @@
     src: funkwhale.target.j2
     dest: "/etc/systemd/system/funkwhale.target"
 
-- name: "Create config directory"
+- name: "Create config directories"
   file:
-    path: /srv/funkwhale/config
+    path: "{{ item }}"
     owner: funkwhale
     group: root
     state: directory
+  loop:
+    - "{{ FUNKWHALE_CONFIG_PATH }}"
+    - "{{ FUNKWHALE_MEDIA_ROOT }}"
+    - "{{ FUNKWHALE_STATIC_ROOT }}"
+    - "{{ FUNKWHALE_MUSIC_DIRECTORY_SERVE_PATH }}"
+    - "{{ FUNKWHALE_MUSIC_DIRECTORY_PATH }}"
 
 - name: "Configure service"
   template:
@@ -110,6 +145,13 @@
     owner: funkwhale
     group: root
     mode: 0600
+
+- name: "hostname to hosts"
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ FUNKWHALE_API_IP }} {{ FUNKWHALE_HOSTNAME }}"
+  become: yes
+  tags: molecule-notest  
 
 - name: "Run an initial migration"
   django_manage:
@@ -153,15 +195,3 @@
       - not result_front.changed
     fail_msg: "'Fail' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
     success_msg: "'Success' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-- name: "Systemd units are enabled"
-  ansible.builtin.systemd:
-    name: '{{ item }}'
-    daemon_reload: true
-    enabled: true
-    state: started
-  loop:
-    - funkwhale-server.service
-    - redis.service
-    - nginx.service
-  register: result_systemd
-

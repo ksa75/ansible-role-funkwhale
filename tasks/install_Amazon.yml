@@ -151,3 +151,24 @@
     src: funkwhale.conf.j2
     dest: "{{ FUNKWHALE_NGINX_SERVER_CONF }}funkwhale.conf"
   # tags: molecule-notest
+
+- name: "Configure front reverse-proxy.nginx basic"
+  blockinfile:
+    path: "{{ FUNKWHALE_NGINX_SERVER_CONF }}../nginx.conf"
+    insertafter: 'http {'
+    state: present
+    block: |
+        # required for websocket support
+        map $http_upgrade $connection_upgrade {
+            default upgrade;
+            ''      close;
+        }
+  # tags: molecule-notest
+
+
+
+- name: "Configure front reverse-proxy.nginx details"
+  template:
+    src: funkwhale_proxy.conf.j2
+    dest: "{{ FUNKWHALE_NGINX_SERVER_CONF }}../funkwhale_proxy.conf"
+  # tags: molecule-notest
