@@ -169,7 +169,6 @@
   template:
     src: funkwhale.conf.j2
     dest: "{{ FUNKWHALE_NGINX_SERVER_CONF }}funkwhale.conf"
-  # tags: molecule-notest
 
 - name: "Configure front reverse-proxy.nginx basic"
   blockinfile:
@@ -182,12 +181,8 @@
             default upgrade;
             ''      close;
         }
-  # tags: molecule-notest        
 
 - name: "Configure front reverse-proxy.nginx details"
   template:
     src: funkwhale_proxy.conf.j2
     dest: "{{ FUNKWHALE_NGINX_SERVER_CONF }}../funkwhale_proxy.conf"
-  # tags: molecule-notest
-
-  
