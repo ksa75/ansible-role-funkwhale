@@ -60,7 +60,7 @@
   ansible.builtin.unarchive:
     src: /srv/funkwhale/front.zip
     dest: /srv/funkwhale
-  # tags: molecule-notest    
+    remote_src: yes
 
 - name: "Add the user"
   user:
@@ -73,7 +73,7 @@
     name: wheel
     virtualenv: /srv/funkwhale/virtualenv
     virtualenv_command: /usr/bin/python3 -m venv
-  # when: cloning_funkwhale.changed
+  when: cloning_funkwhale.changed
 
 - name: "Upgrade pip to the last version"
   pip:
@@ -82,14 +82,14 @@
     virtualenv_command: /usr/bin/python3 -m venv
     extra_args: --upgrade pip
   register: venv_upgrade
-  # when: cloning_funkwhale.changed
+  when: cloning_funkwhale.changed
 
 - name: "Install requirements"
   pip:
     requirements: /srv/funkwhale/api/requirements.txt
     virtualenv: /srv/funkwhale/virtualenv
     virtualenv_command: /usr/bin/python3 -m venv
-  # when: venv_upgrade.changed and cloning_funkwhale.changed
+  when: venv_upgrade.changed and cloning_funkwhale.changed
   register: venv_req
 
 - name: "Install pyopenssl to virtualenv"
@@ -98,7 +98,7 @@
     virtualenv: /srv/funkwhale/virtualenv
     virtualenv_command: /usr/bin/python3 -m venv
     extra_args: --upgrade pip
-  # when: cloning_funkwhale.changed and venv_upgrade.changed  and venv_req.changed
+  when: cloning_funkwhale.changed and venv_upgrade.changed  and venv_req.changed
 
 
 # TODO postgres and redis must be on the same host
@@ -146,22 +146,22 @@
     group: root
     mode: 0600
 
-- name: "hostname to hosts"
-  lineinfile:
-    path: /etc/hosts
-    line: "{{ FUNKWHALE_API_IP }} {{ FUNKWHALE_HOSTNAME }}"
-  become: yes
-  tags: molecule-notest  
-
 - name: "Run an initial migration"
   django_manage:
     command: migrate
     app_path: "/srv/funkwhale/api"
     pythonpath: "/usr/bin/python3"
     virtualenv: "/srv/funkwhale/virtualenv"
-  # tags: molecule-notest
   notify:
     - nginx systemd
+
+# the must for unexisted dns hostname. but hosts is untouchable on docker
+- name: "hostname to hosts"
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ FUNKWHALE_API_IP }} {{ FUNKWHALE_HOSTNAME }}"
+  become: yes
+  tags: molecule-notest
 
 - name: "Systemd units are enabled"
   ansible.builtin.systemd:
@@ -177,7 +177,7 @@
 
 - name: "Check for proper.front.response"
   uri:
-    url: http://localhost/
+    url: "http://{{ FUNKWHALE_HOSTNAME }}/"
     return_content: true
     method: GET
     status_code: 200
@@ -185,9 +185,11 @@
   until: '"Welcome to" in result_front.content'
   retries: 3
   delay: 1
+  tags: molecule-notest
 
 - debug:
     var: result_front
+  tags: molecule-notest
 
 - name: "Check result proper Front response"
   assert:
@@ -195,3 +197,4 @@
       - not result_front.changed
     fail_msg: "'Fail' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
     success_msg: "'Success' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
+  tags: molecule-notest
