@@ -2,25 +2,25 @@
 - name: "Validate configuration"
   assert:
     that:
-      - FUNKWHALE_VERSION: 1.2.10
-      - FUNKWHALE_PROTOCOL: http
-      - FUNKWHALE_HOSTNAME: yourdomain.funkwhale
+      - FUNKWHALE_VERSION is defined
+      - FUNKWHALE_PROTOCOL is defined
+      - FUNKWHALE_HOSTNAME is defined
       - # Generate one using `openssl rand -base64 45`, for example
-      - funkwhale_secret: Svxa4hyN5JzkL8hwK3iN5RECyapEUGaia3cEfrhnf3J1yCOFj5PLhYnUFQHs
-      - funkwhale_db: funkwhale_database
-      - funkwhale_db_user: funkwhale
-      - funkwhale_db_password: password
-      - FUNKWHALE_DB_REPO: http://apt.postgresql.org/pub/repos/apt
-      - FUNKWHALE_DB_VER: 13
-      - FUNKWHALE_CONFIG_PATH: /srv/funkwhale/config
-      - FUNKWHALE_FRONTEND_PATH: /srv/funkwhale/front/dist
-      - FUNKWHALE_MEDIA_ROOT: /srv/funkwhale/data/media
-      - FUNKWHALE_STATIC_ROOT: /srv/funkwhale/data/static
-      - FUNKWHALE_MUSIC_DIRECTORY_SERVE_PATH: /srv/funkwhale/data/music
-      - FUNKWHALE_MUSIC_DIRECTORY_PATH: /srv/funkwhale/data/music
-      - FUNKWHALE_NGINX_MAX_BODY_SIZE: 100M
-      - FUNKWHALE_API_IP: 127.0.0.1
-      - FUNKWHALE_API_PORT: 5000
+      - funkwhale_secret is defined
+      - funkwhale_db is defined
+      - funkwhale_db_user is defined
+      - funkwhale_db_password is defined
+      - FUNKWHALE_DB_REPO is defined
+      - FUNKWHALE_DB_VER is defined
+      - FUNKWHALE_CONFIG_PATH is defined
+      - FUNKWHALE_FRONTEND_PATH is defined
+      - FUNKWHALE_MEDIA_ROOT is defined
+      - FUNKWHALE_STATIC_ROOT is defined
+      - FUNKWHALE_MUSIC_DIRECTORY_SERVE_PATH is defined
+      - FUNKWHALE_MUSIC_DIRECTORY_PATH is defined
+      - FUNKWHALE_NGINX_MAX_BODY_SIZE is defined
+      - FUNKWHALE_API_IP is defined
+      - FUNKWHALE_API_PORT is defined
 
 - name: "install pre packages"
   package:
@@ -155,14 +155,6 @@
   notify:
     - nginx systemd
 
-# the must for unexisted dns hostname. but hosts is untouchable on docker
-- name: "hostname to hosts"
-  lineinfile:
-    path: /etc/hosts
-    line: "{{ FUNKWHALE_API_IP }} {{ FUNKWHALE_HOSTNAME }}"
-  become: yes
-  tags: molecule-notest
-
 - name: "Systemd units are enabled"
   ansible.builtin.systemd:
     name: '{{ item }}'
@@ -174,6 +166,18 @@
     - redis.service
     - nginx.service
   register: result_systemd
+
+# the must for unexisted dns hostname. but hosts is untouchable on docker
+- name: "hostname to hosts"
+  block:
+    - name: "try to insert"
+      lineinfile:
+        path: /etc/hosts
+        line: "{{ FUNKWHALE_API_IP }} {{ FUNKWHALE_HOSTNAME }}"
+      become: yes
+  rescue:
+    - debug:
+        msg: "Cannot modify hosts. Docker? You should add {{ FUNKWHALE_API_IP }} {{ FUNKWHALE_HOSTNAME }} to /etc/hosts manually"
 
 - name: "Check for proper.front.response"
   uri:
