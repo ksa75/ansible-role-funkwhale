@@ -186,7 +186,7 @@
     method: GET
     status_code: 200
   register: result_front
-  until: '"Welcome to" in result_front.content'
+  until: '"Funkwhale" in result_front.content'
   retries: 3
   delay: 1
   tags: molecule-notest
@@ -199,6 +199,6 @@
   assert:
     that:
       - not result_front.changed
-    fail_msg: "'Fail' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
-    success_msg: "'Success' on {{inventory_hostname}} {{ ansible_eth0.ipv4.address }}"
+    fail_msg: "'Fail' on {{inventory_hostname}} {{ ansible_default_ipv4.address }}"
+    success_msg: "'Success' on {{inventory_hostname}} {{ ansible_default_ipv4.address }}"
   tags: molecule-notest
