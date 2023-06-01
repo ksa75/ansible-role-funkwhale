@@ -162,7 +162,7 @@
     enabled: true
     state: started
   loop:
-    - funkwhale-server.service
+    - funkwhale.target
     - redis.service
     - nginx.service
   register: result_systemd
