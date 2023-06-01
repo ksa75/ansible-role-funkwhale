@@ -181,7 +181,7 @@
 
 - name: "Check for proper.front.response"
   uri:
-    url: "http://{{ FUNKWHALE_HOSTNAME }}/"
+    url: "http://{{ FUNKWHALE_HOSTNAME }}:{{ FUNKWHALE_API_PORT }}/"
     return_content: true
     method: GET
     status_code: 200
